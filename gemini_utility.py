@@ -22,7 +22,7 @@ genai.configure(api_key=GOOGLE_API_KEY)
 
 # function to load gemini-pro-model for chatbot
 def load_gemini_pro_model():
-    gemini_pro_model = genai.GenerativeModel("gemini-pro")
+    gemini_pro_model = genai.GenerativeModel("gemini-1.5-flash")
     return gemini_pro_model
 
 
@@ -37,17 +37,25 @@ def load_gemini_pro_model():
 # output = gemini_ pro_vision response (prompt, image)
 # print (output).
 
+# List available models
+
 genai.configure(api_key=GOOGLE_API_KEY)
+models = genai.list_models()
+for model in models:
+    print(f"Model: {model.name}")
 
 #  image/text to text
 def load_gemini_flash_model():
     return genai.GenerativeModel("gemini-1.5-flash")
 
 def gemini_flash_vision_response(prompt, image):
-    model = load_gemini_flash_model()
-    response = model.generate_content([prompt, image])
-    return response.text  # Adjust based on actual response format
-
+    try:
+        model = genai.GenerativeModel("gemini-1.5-flash")  # Or another model from the list
+        response = model.generate_content([prompt, image])
+        return response.text
+    except Exception as e:
+        print(f"Error: {e}")
+        return "Error generating response."
 
 # get response from embeddings model - text to embeddings
 def embeddings_model_response(input_text):
@@ -60,13 +68,17 @@ def embeddings_model_response(input_text):
 
 
 # get response from Gemini-Pro model - text to text
+# get response from Gemini-Pro model - text to text
 def gemini_pro_response(user_prompt):
-    gemini_pro_model = genai.GenerativeModel("gemini-pro")
-    response = gemini_pro_model.generate_content(user_prompt)
-    result = response.text
-    return result
-
-# result = gemini_pro_response("What is Machine Learning")
+    try:
+        # Use a valid model from the list (e.g., gemini-1.5-flash)
+        gemini_pro_model = genai.GenerativeModel("gemini-1.5-flash")  # Update model name here
+        response = gemini_pro_model.generate_content(user_prompt)  # Check if the model supports this method
+        result = response.text
+        return result
+    except Exception as e:
+        print(f"Error: {e}")
+        return "Model not available or error occurred."# result = gemini_pro_response("What is Machine Learning")
 # print(result)
 # print("-"*50)
 #

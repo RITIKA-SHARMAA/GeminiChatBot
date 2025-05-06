@@ -40,32 +40,30 @@ def translate_role_for_streamlit(user_role):
 
 # chatbot page
 if selected == 'ChatBot':
-    model = load_gemini_pro_model()
+    # Check and use an available model, adjust this if necessary
+    model = load_gemini_pro_model()  # This uses "gemini-pro" model
 
-    # Initialize chat session in Streamlit if not already present as Streamlit works on the concept of session
-    if "chat_session" not in st.session_state:  # Renamed for clarity
+    # Initialize chat session in Streamlit if not already present
+    if "chat_session" not in st.session_state:
         st.session_state.chat_session = model.start_chat(history=[])
 
-    # Display the chatbot's title on the page
     st.title("🤖 ChatBot")
 
-    # Display the chat history
     for message in st.session_state.chat_session.history:
         with st.chat_message(translate_role_for_streamlit(message.role)):
             st.markdown(message.parts[0].text)
 
-    # Input field for user's message
-    user_prompt = st.chat_input("Ask Gemini-Pro...")  # Renamed for clarity
+    user_prompt = st.chat_input("Ask Gemini-Pro...")
     if user_prompt:
-        # Add user's message to chat and display it
         st.chat_message("user").markdown(user_prompt)
 
-        # Send user's message to Gemini-Pro and get the response
-        gemini_response = st.session_state.chat_session.send_message(user_prompt)  # Renamed for clarity
-
-        # Display Gemini-Pro's response
-        with st.chat_message("assistant"):
-            st.markdown(gemini_response.text)
+        try:
+            # Send user's message to the model and get the response
+            gemini_response = st.session_state.chat_session.send_message(user_prompt)
+            with st.chat_message("assistant"):
+                st.markdown(gemini_response.text)
+        except Exception as e:
+            st.error(f"Error: {e}")
 
 
 # Image captioning page
@@ -76,21 +74,22 @@ if selected == "Image Captioning":
     uploaded_image = st.file_uploader("Upload an image...", type=["jpg", "jpeg", "png"])
 
     if st.button("Generate Caption"):
-        image = Image.open(uploaded_image)
+        try:
+            image = Image.open(uploaded_image)
+            col1, col2 = st.columns(2)
 
-        col1, col2 = st.columns(2)
+            with col1:
+                resized_img = image.resize((800, 500))
+                st.image(resized_img)
 
-        with col1:
-            resized_img = image.resize((800, 500))
-            st.image(resized_img)
+            default_prompt = "Write a short caption for this image"
+            caption = gemini_flash_vision_response(default_prompt, image)
 
-        default_prompt = "Write a short caption for this image"
+            with col2:
+                st.info(caption)
 
-        # Get the caption of the image from the new model
-        caption = gemini_flash_vision_response(default_prompt, image)
-
-        with col2:
-            st.info(caption)
+        except Exception as e:
+            st.error(f"Error generating caption: {e}")
 
 
 # text embedding model
